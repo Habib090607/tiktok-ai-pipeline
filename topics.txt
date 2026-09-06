@@ -1,0 +1,14 @@
+# Add your TikTok topics here (one per line)
+# Use this file if you want to rotate through different topics daily
+# See README.md for how to integrate with the workflow
+
+AI tips for beginners
+Why artificial intelligence matters in 2025
+Top 3 productivity hacks
+Web development trends
+Cloud computing explained
+Machine learning in everyday life
+Cybersecurity best practices
+Digital marketing strategies
+Remote work tips and tricks
+Future of technology
