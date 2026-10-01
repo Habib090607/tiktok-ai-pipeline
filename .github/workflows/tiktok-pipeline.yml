@@ -1,63 +1,7 @@
-name: TikTok AI Content Pipeline (D-ID)
-
-on:
-  schedule:
-    - cron: '0 9 * * *'
-  workflow_dispatch:
-
-jobs:
-  generate-video:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Cache pip packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Generate TikTok video with D-ID
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          D_ID_API_KEY: ${{ secrets.D_ID_API_KEY }}
-          ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
-        run: |
-          python tiktok_pipeline.py \
-            --topic "AI trends and tips for 2025" \
-            --output "tiktok_video_$(date +%Y%m%d_%H%M%S).mp4"
-
       - name: Upload video as artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tiktok-video
           path: tiktok_video_*.mp4
           retention-days: 7
-
-      - name: Notify on success
-        if: success()
-        run: |
-          echo "✅ TikTok video generated successfully!"
-          echo "Download it from the Artifacts section and post to TikTok manually."
-
-      - name: Notify on failure
-        if: failure()
-        run: |
-          echo "❌ TikTok video generation failed!"
-          echo "Check the logs above for details."
