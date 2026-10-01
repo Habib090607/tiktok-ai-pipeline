@@ -1,13 +1,6 @@
 #!/usr/bin/env python3
-"""
-TikTok AI Content Pipeline (D-ID)
-Generates a script with Claude, turns it into a D-ID talking avatar video,
-and saves it locally for manual posting to TikTok.
-"""
-
-import argparse
 import os
-import sys
+import argparse
 import time
 
 import requests
@@ -17,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+ANTHROPIC_WORKSPACE_ID = os.environ.get("ANTHROPIC_WORKSPACE_ID")
 D_ID_API_KEY = os.environ.get("D_ID_API_KEY")
 ELEVENLABS_VOICE_ID = os.environ.get("ELEVENLABS_VOICE_ID") or "21m00Tcm4TlvDq8ikWAM"
 D_ID_API_URL = "https://api.d-id.com"
@@ -26,27 +20,30 @@ def check_config():
     missing = []
     if not ANTHROPIC_API_KEY:
         missing.append("ANTHROPIC_API_KEY")
+    if not ANTHROPIC_WORKSPACE_ID:
+        missing.append("ANTHROPIC_WORKSPACE_ID")
     if not D_ID_API_KEY:
         missing.append("D_ID_API_KEY")
     if missing:
-        raise SystemExit(
-            "Missing required environment variables: " + ", ".join(missing)
-        )
+        raise SystemExit("Missing required env vars: " + ", ".join(missing))
 
 
 def generate_script(topic: str) -> str:
-    client = Anthropic(api_key=ANTHROPIC_API_KEY)
-    system_prompt = (
-        "You write short-form TikTok scripts. Start with a strong hook in the first sentence. "
-        "Keep the narration under 150 words, around 30-45 seconds spoken. Write plain narration only, "
-        "no camera directions or emojis. End with a soft call to action. Return only the script text."
+    client = Anthropic(
+        api_key=ANTHROPIC_API_KEY,
+        default_headers={
+            "anthropic-version": "2023-06-01",
+            "anthropic-workspace-id": ANTHROPIC_WORKSPACE_ID,
+        },
     )
+
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
         max_tokens=400,
-        system=system_prompt,
+        system="You write short-form TikTok scripts. Strong hook, under 150 words, plain narration only, soft CTA.",
         messages=[{"role": "user", "content": f"Topic: {topic}"}],
     )
+
     return response.content[0].text.strip()
 
 
